@@ -43,3 +43,9 @@ config OPLUS_FEATURE_BOOTARGS
 	default n
 	help
 	  try to get boot cmdline.
+
+config OPLUS_FEATURE_SIMCARDNUM
+	tristate "Oplus simcardnum"
+	default n
+	help
+	  define this config to get simcardnum cmdline.
