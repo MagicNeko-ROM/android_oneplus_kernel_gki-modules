@@ -11,6 +11,7 @@
 #include <linux/platform_device.h>
 #include <linux/gpio.h>
 #include <linux/uaccess.h>
+#include <linux/version.h>
 
 #define SIM_DETECT_NAME "sim_detect"
 
@@ -19,6 +20,10 @@
 
 /**sim_detect log end**/
 
+#if (LINUX_VERSION_CODE >= KERNEL_VERSION(5, 17, 0))
+#undef PDE_DATA
+#define PDE_DATA(inode) pde_data(inode)
+#endif
 
 #define MODEM_DETECT_CMD 55
 
@@ -43,7 +48,7 @@ static ssize_t proc_sim_detect_read(struct file *file,
 	int ret = 0;
 	char page[25] = {0};
 	int sim_detect_value = -1;
-	struct sim_detect_data *sim_detect_data = pde_data(file_inode(file));
+	struct sim_detect_data *sim_detect_data = PDE_DATA(file_inode(file));
 
 	if (!sim_detect_data)
 		return 0;
