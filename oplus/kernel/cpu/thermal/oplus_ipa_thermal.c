@@ -91,9 +91,15 @@ static int get_temp_value(int tz, int *temp)
 	return 0;
 }
 
+#if (LINUX_VERSION_CODE <= KERNEL_VERSION(6, 6, 0))
+static int oplus_get_temp(void *p, int *temp)
+{
+	struct oplus_thermal_data *data = p;
+#else
 static int oplus_get_temp(struct thermal_zone_device *p, int *temp)
 {
 	struct oplus_thermal_data *data = p->devdata;
+#endif
 	int soc_tm_temp = 0;
 
 	if (!data)
@@ -126,7 +132,11 @@ static void reset_ipa_trips(struct oplus_thermal_data *data)
 	params->trip_switch_on = INVALID_TRIP;
 	params->trip_control_temp = INVALID_TRIP;
 
+	#if (LINUX_VERSION_CODE <= KERNEL_VERSION(6, 6, 0))
+	for (i = 0; i < tz->trips; i++) {
+	#else
 	for (i = 0; i < tz->num_trips; i++) {
+	#endif
 		enum thermal_trip_type type;
 		int ret;
 #if (LINUX_VERSION_CODE >= KERNEL_VERSION(6, 6, 0))
@@ -202,9 +212,15 @@ static void allow_maximum_power(struct oplus_thermal_data *data)
 	mutex_lock(&data->lock);
 }
 
+#if (LINUX_VERSION_CODE <= KERNEL_VERSION(6, 6, 0))
+static int
+oplus_power_actor_set_power(struct thermal_cooling_device *cdev,
+		      struct thermal_instance *instance, u32 power)
+#else
 static int
 power_actor_set_power(struct thermal_cooling_device *cdev,
 		      struct thermal_instance *instance, u32 power)
+#endif
 {
 	unsigned long state;
 	int ret;
@@ -359,7 +375,11 @@ static u32 pid_controller(struct oplus_thermal_data *data,
 	 * power being applied, slowing down the controller)
 	 */
 	d = mul_frac(params->k_d, err - params->prev_err);
+#if (LINUX_VERSION_CODE < KERNEL_VERSION(6, 6, 0))
+	d = div_frac(d, tz->passive_delay);
+#else
 	d = div_frac(d, jiffies_to_msecs(tz->passive_delay_jiffies));
+#endif
 	params->prev_err = err;
 
 	power_range = p + i + d;
@@ -485,7 +505,11 @@ static int oplus_ipa_controller(struct oplus_thermal_data *data, int control_tem
 
 		if (use_thermalcontrol_limit && data->ipa_param->clt_state_limit[i] > 0 && data->ipa_param->sustainable_power < CPU_POWER_MAX) {
 			for(level = cpufreq_cdev->max_level; level > 0; level--) {
+#if (LINUX_VERSION_CODE < KERNEL_VERSION(6, 6, 0))
+				if(data->ipa_param->clt_state_limit[i] >= cpufreq_cdev->em->table[level].frequency)
+#else
 				if(data->ipa_param->clt_state_limit[i] >= cpufreq_cdev->em->em_table->state[level].frequency)
+#endif
 					break;
 			}
 			if (cdev->ops->state2power(cdev, (cpufreq_cdev->max_level - level),
@@ -506,7 +530,7 @@ static int oplus_ipa_controller(struct oplus_thermal_data *data, int control_tem
 	}
 
 	power_range = pid_controller(data, control_temp, max_allocatable_power);
-#if (LINUX_VERSION_CODE < KERNEL_VERSION(6, 6, 0))
+#if 0 // trace_android_vh_thermal_power_cap is not available in all versions
 	trace_android_vh_thermal_power_cap(&power_range);
 #endif
 	divvy_up_power(weighted_req_power, max_power, num_actors,
@@ -558,7 +582,11 @@ static int oplus_ipa_controller(struct oplus_thermal_data *data, int control_tem
 
 		granted_power[i] = granted_power[i] / ncpus;
 
+#if (LINUX_VERSION_CODE <= KERNEL_VERSION(6, 6, 0))
+		oplus_power_actor_set_power(instance->cdev, instance, (granted_power[i] * last_load + 100) /100);
+#else
 		power_actor_set_power(instance->cdev, instance, (granted_power[i] * last_load + 100) /100);
+#endif
 
 		i++;
 	}
@@ -616,7 +644,9 @@ static void oplus_ipa_thermal(struct oplus_thermal_data *data)
 	struct oplus_ipa_param *params = data->ipa_param;
 	int ret = 0;
 	int switch_on_temp, control_temp, delay;
+#if (LINUX_VERSION_CODE >= KERNEL_VERSION(6, 6, 0))
 	struct thermal_trip trip;
+#endif
 
 	if (atomic_read(&oplus_thermal_in_suspend))
 		return;
@@ -915,7 +945,11 @@ static int oplus_map_dt_data(struct platform_device *pdev)
 	return 0;
 }
 
+#if (LINUX_VERSION_CODE < KERNEL_VERSION(6, 6, 0))
+static const struct thermal_zone_of_device_ops oplus_sensor_ops = {
+#else
 static const struct thermal_zone_device_ops oplus_sensor_ops = {
+#endif
 	.get_temp = oplus_get_temp,
 };
 
@@ -1208,8 +1242,13 @@ static int oplus_thermal_probe(struct platform_device *pdev)
 	if (ret)
 		goto err_sensor;
 
+#if (LINUX_VERSION_CODE <= KERNEL_VERSION(6, 6, 0))
+	data->tzd = thermal_zone_of_sensor_register(&pdev->dev, 0, data,
+						    &oplus_sensor_ops);
+#else
 	data->tzd = devm_thermal_of_zone_register(&pdev->dev, 0, data,
 						    &oplus_sensor_ops);
+#endif
 	if (IS_ERR(data->tzd)) {
 		ret = PTR_ERR(data->tzd);
 		dev_err(&pdev->dev, "Failed to register sensor: %d\n", ret);
@@ -1249,7 +1288,11 @@ static int oplus_thermal_probe(struct platform_device *pdev)
 	return 0;
 
 err_thermal:
+#if (LINUX_VERSION_CODE < KERNEL_VERSION(6, 6, 0))
+	thermal_zone_of_sensor_unregister(&pdev->dev, data->tzd);
+#else
 	devm_thermal_of_zone_unregister(&pdev->dev, data->tzd);
+#endif
 err_sensor:
 	return ret;
 }
@@ -1260,7 +1303,11 @@ static int oplus_thermal_remove(struct platform_device *pdev)
 	struct thermal_zone_device *tzd = data->tzd;
 	struct oplus_thermal_data *devnode;
 
+#if (LINUX_VERSION_CODE < KERNEL_VERSION(6, 6, 0))
+	thermal_zone_of_sensor_unregister(&pdev->dev, tzd);
+#else
 	devm_thermal_of_zone_unregister(&pdev->dev, tzd);
+#endif
 	oplus_thermal_control(pdev, false);
 
 	mutex_lock(&data->lock);

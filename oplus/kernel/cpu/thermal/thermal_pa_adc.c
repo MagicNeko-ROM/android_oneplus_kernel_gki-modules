@@ -13,7 +13,9 @@
 #include <linux/slab.h>
 #include <linux/thermal.h>
 #include <linux/delay.h>
+#include <linux/version.h>
 
+#if (LINUX_VERSION_CODE >= KERNEL_VERSION(6, 6, 0))
 #define VADC_PA_TIME_MIN_US			3000
 #define VADC_PA_TIME_MAX_US			3100
 struct gadc_thermal_info {
@@ -37,6 +39,7 @@ static int gadc_thermal_get_temp(struct thermal_zone_device *tz, int *temp)
 	int val;
 	int ret;
 	int maxval;
+	int i = 0;
 
 	ret = iio_read_channel_processed(gti->channel, &val);
 	if (ret < 0) {
@@ -45,7 +48,7 @@ static int gadc_thermal_get_temp(struct thermal_zone_device *tz, int *temp)
 	}
 
 	maxval = val;
-	for (int i = 0; i < 20; i++) {
+	for (i = 0; i < 20; i++) {
 		//udelay(3000);
 		usleep_range(VADC_PA_TIME_MIN_US, VADC_PA_TIME_MAX_US);
 		iio_read_channel_processed(gti->channel, &val);
@@ -116,6 +119,7 @@ static struct platform_driver gadc_thermal_driver = {
 };
 
 module_platform_driver(gadc_thermal_driver);
+#endif
 
 MODULE_AUTHOR("Laxman Dewangan <ldewangan@nvidia.com>");
 MODULE_DESCRIPTION("Generic ADC thermal driver using IIO framework with DT");
