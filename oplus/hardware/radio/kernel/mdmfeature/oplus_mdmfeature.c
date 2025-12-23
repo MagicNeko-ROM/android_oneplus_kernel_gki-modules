@@ -32,7 +32,7 @@
 #include <linux/proc_fs.h>
 #include <linux/version.h>
 #if IS_MODULE(CONFIG_OPLUS_FEATURE_SIMCARDNUM)
-#include <oplus_mdmfeature.h>
+#include "oplus_mdmfeature.h"
 #endif
 #include <linux/mutex.h>
 /*****xueqian.zheng ******/
