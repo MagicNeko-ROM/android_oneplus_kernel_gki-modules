@@ -1109,11 +1109,13 @@ int oplus_chg_ic_virq_register(struct oplus_chg_ic_dev *ic_dev,
 		virq = &ic_dev->virq_data[i];
 		if (virq->virq_id != virq_id)
 			continue;
+#ifdef CONFIG_OPLUS_CHG_IC_DEBUG
 		if (atomic_read(&virq->count) >= OPLUS_CHG_IC_VIRQ_CLIENT_MAX) {
 			chg_err("%s: virq[%d]: Exceeded maximum registration limit\n",
 				ic_dev->manu_name, virq_id);
 			return -EFAULT;
 		}
+#endif /* CONFIG_OPLUS_CHG_IC_DEBUG */
 		virq_data = devm_kzalloc(ic_dev->dev,
 			sizeof(struct oplus_chg_ic_virq_data), GFP_KERNEL);
 		if (virq_data == NULL) {
@@ -1440,11 +1442,12 @@ static int __oplus_chg_ic_wait_ic(const char *name, ic_callback_t call, void *da
 	 * again here.
 	 */
 	ic_dev = oplus_chg_ic_find_by_name(name);
+#ifdef CONFIG_OPLUS_CHG_IC_DEBUG
 	if (ic_dev != NULL) {
 		oplus_chg_ic_call(ic_dev);
 		return 0;
 	}
-
+#endif
 	if (delay)
 		schedule_delayed_work(&head->callback_work, delay);
 
@@ -1471,6 +1474,7 @@ int oplus_chg_ic_wait_ic_timeout(const char *name, ic_callback_t call, void *dat
 	return __oplus_chg_ic_wait_ic(name, call, data, delay);
 }
 
+#ifdef CONFIG_OPLUS_CHG_IC_DEBUG
 static void oplus_chg_ic_call(struct oplus_chg_ic_dev *ic_dev)
 {
 	struct oplus_chg_ic_call_head *head, *tmp;
@@ -1493,6 +1497,7 @@ static void oplus_chg_ic_call(struct oplus_chg_ic_dev *ic_dev)
 		kfree(head);
 	}
 }
+#endif /* CONFIG_OPLUS_CHG_IC_DEBUG */
 
 static void oplus_chg_ic_get_cfg(struct oplus_chg_ic_dev *ic_dev, struct oplus_chg_ic_cfg *cfg)
 {
@@ -1751,8 +1756,8 @@ __oplus_chg_ic_register(struct device *dev, struct oplus_chg_ic_cfg *cfg)
 
 #ifdef CONFIG_OPLUS_CHG_IC_DEBUG
 	kobject_uevent(&ic_dev->debug_dev->kobj, KOBJ_CHANGE);
-#endif
 	oplus_chg_ic_call(ic_dev);
+#endif
 
 	return ic_dev;
 
