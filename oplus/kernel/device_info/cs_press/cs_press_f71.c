@@ -21,6 +21,11 @@
 #include <linux/sched.h>
 #include <linux/sched/signal.h>
 #include <uapi/linux/sched/types.h>
+#include <linux/version.h>
+
+#if (LINUX_VERSION_CODE < KERNEL_VERSION(5, 17, 0))
+#define pde_data(inode) PDE_DATA(inode)
+#endif
 
 //#define ALIENTEK
 #ifndef ALIENTEK
@@ -6407,7 +6412,11 @@ static struct miscdevice csa37f71_misc = {
     .fops  = &csa37f71_fops,
 };
 
+#if (LINUX_VERSION_CODE >= KERNEL_VERSION(6, 3, 0))
 static int csa37f71_probe(struct i2c_client *client)
+#else
+static int csa37f71_probe(struct i2c_client *client, const struct i2c_device_id *id)
+#endif
 {
     int ret = -1;
 #if IS_ENABLED(CONFIG_DRM_OPLUS_PANEL_NOTIFY) || IS_ENABLED(CONFIG_QCOM_PANEL_EVENT_NOTIFIER)
@@ -6511,11 +6520,19 @@ static int csa37f71_resume(struct device *dev)
     return 0;
 }
 
+#if (LINUX_VERSION_CODE >= KERNEL_VERSION(6, 6, 0))
 static void csa37f71_remove(struct i2c_client *client)
+#else
+static int csa37f71_remove(struct i2c_client *client)
+#endif
 {
     /* delete device */
     if(g_cs_press.client == NULL){
+#if (LINUX_VERSION_CODE >= KERNEL_VERSION(6, 6, 0))
         return;
+#else
+        return 0;
+#endif
     }
     LOG_DEBUG("csa37f71_remove\n");
     if (g_cs_press.suspend_lock) {
@@ -6529,6 +6546,9 @@ static void csa37f71_remove(struct i2c_client *client)
 #endif
     misc_deregister(&csa37f71_misc);
     g_cs_press.client = NULL;
+#if (LINUX_VERSION_CODE < KERNEL_VERSION(6, 6, 0))
+    return 0;
+#endif
 }
 
 /*

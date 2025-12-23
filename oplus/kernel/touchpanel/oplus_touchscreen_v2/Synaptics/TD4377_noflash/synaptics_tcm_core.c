@@ -5517,12 +5517,14 @@ static int syna_tcm_spi_probe(struct spi_device *spi)
 	ts->s_client->mode = SPI_MODE_3;
 	ts->s_client->bits_per_word = 8;
 	spi->bits_per_word = 8;
+#if (LINUX_VERSION_CODE >= KERNEL_VERSION(6, 6, 0))
 	spi->cs_setup.value = 1;
 	spi->cs_setup.unit = 0;
 	spi->cs_hold.value = 1;
 	spi->cs_hold.unit = 0;
 	spi->cs_inactive.value = 1;
 	spi->cs_inactive.unit = 0;
+#endif
 	ts->irq = spi->irq;
 	ts->irq_flags_cover = 0x2008;
 	/*ts->has_callback = true;*/
