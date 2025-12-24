@@ -1719,6 +1719,7 @@ static void battery_chg_state_cb(void *priv, enum pmic_glink_state state)
 		schedule_work(&bcdev->subsys_up_work);
 }
 
+#if 0
 /**
  * qti_battery_charger_get_prop() - Gets the property being requested
  *
@@ -1767,6 +1768,7 @@ int qti_battery_charger_get_prop(const char *name,
 	return rc;
 }
 EXPORT_SYMBOL(qti_battery_charger_get_prop);
+#endif
 
 #if (LINUX_VERSION_CODE >= KERNEL_VERSION(6, 6, 0))
 int qti_battery_charger_set_prop(const char *name,

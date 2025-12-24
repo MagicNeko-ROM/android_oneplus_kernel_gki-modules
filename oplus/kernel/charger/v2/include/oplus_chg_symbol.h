@@ -22,7 +22,7 @@
 #if defined(CONFIG_OPLUS_SM8350_CHARGER)
 #define oplus_adsp_crash_recover_work oplus_adsp_crash_recover_work_v2
 #endif
-#define qti_battery_charger_get_prop qti_battery_charger_get_prop_v2
+// #define qti_battery_charger_get_prop qti_battery_charger_get_prop_v2
 #endif /* USE_ADSP */
 
 #if IS_ENABLED(CONFIG_OPLUS_AUDIO_SWITCH_GLINK)

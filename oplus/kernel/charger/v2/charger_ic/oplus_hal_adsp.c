@@ -13373,8 +13373,10 @@ static int oplus_sm8350_ic_register(struct battery_chg_dev *bcdev)
 	struct oplus_chg_ic_dev *ic_dev = NULL;
 	struct oplus_chg_ic_cfg ic_cfg;
 	int rc;
+#ifdef CONFIG_OPLUS_CHG_IC_DEBUG
 	struct device_attribute **attrs;
 	struct device_attribute *attr;
+#endif
 	const char *gauge_name[DEVINFO_DATA_NUM];
 
 	for_each_child_of_node(bcdev->dev->of_node, child) {

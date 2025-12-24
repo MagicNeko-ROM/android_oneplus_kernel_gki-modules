@@ -49,8 +49,8 @@ DEF_SYMBOLE(void, oplus_adsp_crash_recover_work, void)
 ADD_FUNC_BODY(oplus_adsp_crash_recover_work)
 #endif
 
-DEF_SYMBOLE(int, qti_battery_charger_get_prop, const char *name, enum battery_charger_prop prop_id, int *val)
-ADD_FUNC_BODY(qti_battery_charger_get_prop, name, prop_id, val)
+// DEF_SYMBOLE(int, qti_battery_charger_get_prop, const char *name, enum battery_charger_prop prop_id, int *val)
+// ADD_FUNC_BODY(qti_battery_charger_get_prop, name, prop_id, val)
 #endif /* USE_ADSP */
 
 #if IS_ENABLED(CONFIG_OPLUS_AUDIO_SWITCH_GLINK)
