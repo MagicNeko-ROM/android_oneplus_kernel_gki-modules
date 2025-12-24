@@ -56,6 +56,23 @@ enum {
 #if (LINUX_VERSION_CODE >= KERNEL_VERSION(5, 10, 0))
 #include <uapi/linux/rtc.h>
 
+extern time64_t rtc_tm_to_time64(struct rtc_time *tm);
+extern void rtc_time64_to_tm(time64_t time, struct rtc_time *tm);
+
+static inline void rtc_time_to_tm(unsigned long time, struct rtc_time *tm)
+{
+	rtc_time64_to_tm(time, tm);
+}
+
+static inline int rtc_tm_to_time(struct rtc_time *tm, unsigned long *time)
+{
+	*time = rtc_tm_to_time64(tm);
+
+	return 0;
+}
+
+#endif /* (LINUX_VERSION_CODE >= KERNEL_VERSION(5, 10, 0)) */
+#endif /* defined(CONFIG_OPLUS_CHARGER_MTK) || LINUX_VERSION_CODE >= KERNEL_VERSION(5, 15, 0) */
 //for dx1 bringup
 #ifdef __KERNEL__
 #ifndef _STRUCT_TIMESPEC
@@ -82,20 +99,6 @@ struct itimerval {
 };
 #endif
 
-extern time64_t rtc_tm_to_time64(struct rtc_time *tm);
-extern void rtc_time64_to_tm(time64_t time, struct rtc_time *tm);
-
-static inline void rtc_time_to_tm(unsigned long time, struct rtc_time *tm)
-{
-	rtc_time64_to_tm(time, tm);
-}
-
-static inline int rtc_tm_to_time(struct rtc_time *tm, unsigned long *time)
-{
-	*time = rtc_tm_to_time64(tm);
-
-	return 0;
-}
 
 #if __BITS_PER_LONG == 64
 /* timespec64 is defined as timespec here */
@@ -145,8 +148,6 @@ static inline struct timespec current_kernel_time(void)
 
 	return timespec64_to_timespec(ts64);
 }
-#endif /* (LINUX_VERSION_CODE >= KERNEL_VERSION(5, 10, 0)) */
-#endif /* defined(CONFIG_OPLUS_CHARGER_MTK) || LINUX_VERSION_CODE >= KERNEL_VERSION(5, 15, 0) */
 
 #define PD_SRC_PDO_TYPE(pdo)		(((pdo) >> 30) & 3)
 #define PD_SRC_PDO_TYPE_FIXED		0

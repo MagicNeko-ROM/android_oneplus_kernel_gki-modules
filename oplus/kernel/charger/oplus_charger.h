@@ -211,6 +211,22 @@
 #ifndef PLATFORM_SUPPORT_TIMESPEC
 #include <uapi/linux/rtc.h>
 
+extern time64_t rtc_tm_to_time64(struct rtc_time *tm);
+extern void rtc_time64_to_tm(time64_t time, struct rtc_time *tm);
+
+static inline void rtc_time_to_tm(unsigned long time, struct rtc_time *tm)
+{
+	rtc_time64_to_tm(time, tm);
+}
+
+static inline int rtc_tm_to_time(struct rtc_time *tm, unsigned long *time)
+{
+	*time = rtc_tm_to_time64(tm);
+
+	return 0;
+}
+#endif
+
 #ifdef __KERNEL__
 #ifndef _STRUCT_TIMESPEC
 #define _STRUCT_TIMESPEC
@@ -236,20 +252,6 @@ struct itimerval {
 #endif
 #endif
 
-extern time64_t rtc_tm_to_time64(struct rtc_time *tm);
-extern void rtc_time64_to_tm(time64_t time, struct rtc_time *tm);
-
-static inline void rtc_time_to_tm(unsigned long time, struct rtc_time *tm)
-{
-	rtc_time64_to_tm(time, tm);
-}
-
-static inline int rtc_tm_to_time(struct rtc_time *tm, unsigned long *time)
-{
-	*time = rtc_tm_to_time64(tm);
-
-	return 0;
-}
 
 #if __BITS_PER_LONG == 64
 /* timespec64 is defined as timespec here */
@@ -293,7 +295,6 @@ static inline void getnstimeofday(struct timespec *ts)
 	*ts = timespec64_to_timespec(ts64);
 }
 #endif /*PLATFORM_SUPPORT_TIMESPEC*/
-#endif
 
 #define CHG_LOG_CRTI 1
 #define CHG_LOG_FULL 2
