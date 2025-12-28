@@ -5,3 +5,4 @@ oplus_sensor_deviceinfo-y := $(oplus_sensor-y)
 obj-m += oplus_sensor_deviceinfo.o
 obj-y += oplus_ssc_interact/
 obj-y += oplus_sensor_feedback/
+obj-y += 5.10/
